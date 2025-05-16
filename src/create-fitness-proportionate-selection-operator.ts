@@ -3,22 +3,25 @@ import type {Genotype, SelectionOperator} from './types.js';
 export function createFitnessProportionateSelectionOperator<
   TGenotype extends Genotype,
 >(randomFunction: () => number = Math.random): SelectionOperator<TGenotype> {
-  // https://arxiv.org/abs/1109.3627
-  return (phenotypes, fitnessFunction) => {
+  return async (phenotypes, fitnessFunction) => {
     if (phenotypes.length === 0) {
       throw new Error(`No phenotype available to select.`);
     }
 
-    const maxFitness = phenotypes.reduce(
-      (fitness, phenotype) => Math.max(fitness, fitnessFunction(phenotype)),
-      Number.NEGATIVE_INFINITY,
+    const fitnessList = await Promise.all(
+      phenotypes.map(async (phenotype) => ({
+        phenotype,
+        fitness: await fitnessFunction(phenotype),
+      })),
     );
 
-    while (true) {
-      const phenotype =
-        phenotypes[Math.floor(randomFunction() * phenotypes.length)]!;
+    const maxFitness = Math.max(...fitnessList.map(({fitness}) => fitness));
 
-      if (randomFunction() < fitnessFunction(phenotype) / maxFitness) {
+    while (true) {
+      const {phenotype, fitness} =
+        fitnessList[Math.floor(randomFunction() * fitnessList.length)]!;
+
+      if (randomFunction() < fitness / maxFitness) {
         return phenotype;
       }
     }

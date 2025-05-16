@@ -20,9 +20,9 @@ export interface GeneticAlgorithmState<TGenotype extends Genotype> {
   readonly mutationOperator: MutationOperator<TGenotype>;
 }
 
-export function geneticAlgorithm<TGenotype extends Genotype>(
+export async function geneticAlgorithm<TGenotype extends Genotype>(
   state: GeneticAlgorithmState<TGenotype>,
-): GeneticAlgorithmState<TGenotype> {
+): Promise<GeneticAlgorithmState<TGenotype>> {
   const {
     genotype,
     populationSize,
@@ -54,20 +54,27 @@ export function geneticAlgorithm<TGenotype extends Genotype>(
   const outputPhenotypes: Phenotype<TGenotype>[] = [];
 
   if (elitePopulationSize > 0) {
-    inputPhenotypes.sort(
-      (phenotypeA, phenotypeB) =>
-        fitnessFunction(phenotypeB) - fitnessFunction(phenotypeA),
+    // Compute fitness values asynchronously before sorting
+    const phenotypesWithFitness = await Promise.all(
+      inputPhenotypes.map(async (phenotype) => ({
+        phenotype,
+        fitness: await fitnessFunction(phenotype),
+      })),
     );
-
-    outputPhenotypes.push(...inputPhenotypes.slice(0, elitePopulationSize));
+    phenotypesWithFitness.sort((a, b) => b.fitness - a.fitness);
+    outputPhenotypes.push(
+      ...phenotypesWithFitness
+        .slice(0, elitePopulationSize)
+        .map(({phenotype}) => phenotype),
+    );
   }
 
   while (outputPhenotypes.length < populationSize) {
     outputPhenotypes.push(
       mutationOperator(
         crossoverOperator(
-          selectionOperator(inputPhenotypes, fitnessFunction),
-          selectionOperator(inputPhenotypes, fitnessFunction),
+          await selectionOperator(inputPhenotypes, fitnessFunction),
+          await selectionOperator(inputPhenotypes, fitnessFunction),
         ),
         genotype,
       ),

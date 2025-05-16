@@ -16,11 +16,11 @@ export type Gene<
 export type SelectionOperator<TGenotype extends Genotype> = (
   phenotypes: readonly Phenotype<TGenotype>[],
   fitnessFunction: FitnessFunction<TGenotype>,
-) => Phenotype<TGenotype>;
+) => Promise<Phenotype<TGenotype>>;
 
 export type FitnessFunction<TGenotype extends Genotype> = (
   phenotype: Phenotype<TGenotype>,
-) => number;
+) => Promise<number>;
 
 export type CrossoverOperator<TGenotype extends Genotype> = (
   phenotypeA: Phenotype<TGenotype>,

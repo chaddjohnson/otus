@@ -108,6 +108,12 @@
         "@typescript-eslint/promise-function-async": "off",
         "@typescript-eslint/require-await": "off"
       }
+    },
+    {
+      "files": ["**/*.test.ts"],
+      "rules": {
+        "@typescript-eslint/promise-function-async": "off"
+      }
     }
   ],
   "parserOptions": {

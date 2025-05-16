@@ -8,15 +8,18 @@ interface TestGenotype extends Genotype {
 }
 
 describe(`createFitnessProportionateSelectionOperator()`, () => {
-  test(`invalid arguments`, () => {
-    expect(() =>
-      createFitnessProportionateSelectionOperator()([], () => 0),
-    ).toThrow(new Error(`No phenotype available to select.`));
+  test(`invalid arguments`, async () => {
+    await expect(
+      createFitnessProportionateSelectionOperator()([], () =>
+        Promise.resolve(0),
+      ),
+    ).rejects.toThrow(new Error(`No phenotype available to select.`));
   });
 
-  test(`fitness proportionate selection (single individual)`, () => {
+  test(`fitness proportionate selection (single individual)`, async () => {
     const fitnessFunction = jest.fn(
-      (phenotype: Phenotype<TestGenotype>) => phenotype.fitness,
+      async (phenotype: Phenotype<TestGenotype>) =>
+        Promise.resolve(phenotype.fitness),
     );
 
     const randomFunction = jest.fn<() => number>();
@@ -27,14 +30,15 @@ describe(`createFitnessProportionateSelectionOperator()`, () => {
     randomFunction.mockReturnValueOnce(0);
     randomFunction.mockReturnValueOnce(0);
 
-    expect(selectionOperator([{fitness: 5}], fitnessFunction)).toEqual({
+    expect(await selectionOperator([{fitness: 5}], fitnessFunction)).toEqual({
       fitness: 5,
     });
   });
 
-  test(`fitness proportionate selection (several individuals)`, () => {
+  test(`fitness proportionate selection (several individuals)`, async () => {
     const fitnessFunction = jest.fn(
-      (phenotype: Phenotype<TestGenotype>) => phenotype.fitness,
+      async (phenotype: Phenotype<TestGenotype>) =>
+        Promise.resolve(phenotype.fitness),
     );
 
     const randomFunction = jest.fn<() => number>();
@@ -50,7 +54,7 @@ describe(`createFitnessProportionateSelectionOperator()`, () => {
     randomFunction.mockReturnValueOnce(0.15 /* probability = 0.15 < 0.25 */);
 
     expect(
-      selectionOperator(
+      await selectionOperator(
         [
           {fitness: 5}, // 5 / 20 = 0.25
           {fitness: 10}, // 10 / 20 = 0.5

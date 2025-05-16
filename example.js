@@ -23,7 +23,9 @@ function isAnswerToEverything(smallNumberPhenotype) {
     smallNumberPhenotype.exponent,
   );
 
-  return number === 42 ? Number.MAX_SAFE_INTEGER : 1 / Math.abs(42 - number);
+  return Promise.resolve(
+    number === 42 ? Number.MAX_SAFE_INTEGER : 1 / Math.abs(42 - number),
+  );
 }
 
 /**
@@ -40,21 +42,23 @@ let state = {
   mutationOperator: createUniformMutationOperator(0.1),
 };
 
-for (let i = 0; i < 100; i += 1) {
-  state = geneticAlgorithm(state);
-}
+(async () => {
+  for (let i = 0; i < 100; i += 1) {
+    state = await geneticAlgorithm(state);
+  }
 
-const answerToEverythingPhenotype = getFittestPhenotype(state);
+  const answerToEverythingPhenotype = await getFittestPhenotype(state);
 
-if (!answerToEverythingPhenotype) {
-  throw new Error(`I have no answer.`);
-}
+  if (!answerToEverythingPhenotype) {
+    throw new Error(`I have no answer.`);
+  }
 
-console.log(
-  `The answer to everything:`,
-  Math.pow(
-    answerToEverythingPhenotype.base,
-    answerToEverythingPhenotype.exponent,
-  ),
-  answerToEverythingPhenotype,
-);
+  console.log(
+    `The answer to everything:`,
+    Math.pow(
+      answerToEverythingPhenotype.base,
+      answerToEverythingPhenotype.exponent,
+    ),
+    answerToEverythingPhenotype,
+  );
+})();

@@ -15,31 +15,33 @@ interface TestGenotype extends Genotype {
 }
 
 describe(`getFittestPhenotype()`, () => {
-  test(`fittest phenotype`, () => {
-    expect(
-      getFittestPhenotype<TestGenotype>({
-        genotype: {fitness: jest.fn<Allele<number>>()},
-        phenotypes: [{fitness: -100}, {fitness: 100}, {fitness: 0}],
-        populationSize: 3,
-        fitnessFunction: (phenotype) => phenotype.fitness,
-        selectionOperator: jest.fn<SelectionOperator<TestGenotype>>(),
-        crossoverOperator: jest.fn<CrossoverOperator<TestGenotype>>(),
-        mutationOperator: jest.fn<MutationOperator<TestGenotype>>(),
-      }),
-    ).toEqual({fitness: 100});
+  test(`fittest phenotype`, async () => {
+    const result = await getFittestPhenotype<TestGenotype>({
+      genotype: {fitness: jest.fn<Allele<number>>()},
+      phenotypes: [{fitness: -100}, {fitness: 100}, {fitness: 0}],
+      populationSize: 3,
+      fitnessFunction: async (phenotype) => Promise.resolve(phenotype.fitness),
+      selectionOperator: jest.fn<SelectionOperator<TestGenotype>>(),
+      crossoverOperator: jest.fn<CrossoverOperator<TestGenotype>>(),
+      mutationOperator: jest.fn<MutationOperator<TestGenotype>>(),
+    });
+
+    expect(result).toEqual({fitness: 100});
   });
 
-  test(`empty phenotypes`, () => {
-    expect(
-      getFittestPhenotype<TestGenotype>({
-        genotype: {fitness: jest.fn<Allele<number>>()},
-        phenotypes: [],
-        populationSize: 3,
-        fitnessFunction: jest.fn<FitnessFunction<TestGenotype>>(),
-        selectionOperator: jest.fn<SelectionOperator<TestGenotype>>(),
-        crossoverOperator: jest.fn<CrossoverOperator<TestGenotype>>(),
-        mutationOperator: jest.fn<MutationOperator<TestGenotype>>(),
-      }),
-    ).toBe(undefined);
+  test(`empty phenotypes`, async () => {
+    const result = await getFittestPhenotype<TestGenotype>({
+      genotype: {fitness: jest.fn<Allele<number>>()},
+      phenotypes: [],
+      populationSize: 3,
+      fitnessFunction: jest
+        .fn<FitnessFunction<TestGenotype>>()
+        .mockResolvedValue(0),
+      selectionOperator: jest.fn<SelectionOperator<TestGenotype>>(),
+      crossoverOperator: jest.fn<CrossoverOperator<TestGenotype>>(),
+      mutationOperator: jest.fn<MutationOperator<TestGenotype>>(),
+    });
+
+    expect(result).toBe(undefined);
   });
 });

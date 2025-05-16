@@ -3,14 +3,18 @@ import type {FitnessFunction, Genotype, Phenotype} from './types.js';
 export function cacheFitnessFunction<TGenotype extends Genotype>(
   fitnessFunction: FitnessFunction<TGenotype>,
 ): FitnessFunction<TGenotype> {
-  const fitnessCache = new WeakMap<Phenotype<TGenotype>, number>();
+  const fitnessCache = new Map<string, number>();
 
-  return (phenotype) => {
-    let fitness = fitnessCache.get(phenotype);
+  return async (phenotype: Phenotype<TGenotype>): Promise<number> => {
+    const key = JSON.stringify(phenotype);
+    const cached = fitnessCache.get(key);
 
-    if (fitness === undefined) {
-      fitnessCache.set(phenotype, (fitness = fitnessFunction(phenotype)));
+    if (cached !== undefined) {
+      return cached;
     }
+
+    const fitness = await fitnessFunction(phenotype);
+    fitnessCache.set(key, fitness);
 
     return fitness;
   };

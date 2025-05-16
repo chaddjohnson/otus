@@ -24,8 +24,8 @@ interface TestGenotype extends Genotype {
 }
 
 describe(`geneticAlgorithm()`, () => {
-  test(`invalid arguments`, () => {
-    expect(() =>
+  test(`invalid arguments`, async () => {
+    await expect(
       geneticAlgorithm<TestGenotype>({
         genotype: {fitness: jest.fn<Allele<number>>()},
         phenotypes: [{fitness: 75}, {fitness: 100}],
@@ -35,11 +35,11 @@ describe(`geneticAlgorithm()`, () => {
         crossoverOperator: jest.fn<CrossoverOperator<TestGenotype>>(),
         mutationOperator: jest.fn<MutationOperator<TestGenotype>>(),
       }),
-    ).toThrow(
+    ).rejects.toThrow(
       new Error(`There are more phenotypes than the population size allows.`),
     );
 
-    expect(() =>
+    await expect(
       geneticAlgorithm({
         genotype: {fitness: jest.fn()},
         phenotypes: [{fitness: 75}, {fitness: 100}],
@@ -50,15 +50,15 @@ describe(`geneticAlgorithm()`, () => {
         crossoverOperator: jest.fn<CrossoverOperator<Genotype>>(),
         mutationOperator: jest.fn<MutationOperator<Genotype>>(),
       }),
-    ).toThrow(
+    ).rejects.toThrow(
       new Error(
         `The elite population size must be smaller than the total population size.`,
       ),
     );
   });
 
-  test(`elitism`, () => {
-    const state = geneticAlgorithm<TestGenotype>({
+  test(`elitism`, async () => {
+    const state = await geneticAlgorithm<TestGenotype>({
       genotype: {fitness: () => 0},
       phenotypes: [
         {fitness: 75},
@@ -69,7 +69,9 @@ describe(`geneticAlgorithm()`, () => {
       ],
       populationSize: 5,
       elitePopulationSize: 2,
-      fitnessFunction: cacheFitnessFunction((phenotype) => phenotype.fitness),
+      fitnessFunction: cacheFitnessFunction(async (phenotype) =>
+        Promise.resolve(phenotype.fitness),
+      ),
       selectionOperator: createFitnessProportionateSelectionOperator(),
       crossoverOperator: createUniformCrossoverOperator(0),
       mutationOperator: createUniformMutationOperator(1),
@@ -84,8 +86,8 @@ describe(`geneticAlgorithm()`, () => {
     ]);
   });
 
-  test(`no elitism`, () => {
-    const state = geneticAlgorithm<TestGenotype>({
+  test(`no elitism`, async () => {
+    const state = await geneticAlgorithm<TestGenotype>({
       genotype: {fitness: () => 0},
       phenotypes: [
         {fitness: 75},
@@ -95,7 +97,9 @@ describe(`geneticAlgorithm()`, () => {
         {fitness: 100},
       ],
       populationSize: 5,
-      fitnessFunction: cacheFitnessFunction((phenotype) => phenotype.fitness),
+      fitnessFunction: cacheFitnessFunction(async (phenotype) =>
+        Promise.resolve(phenotype.fitness),
+      ),
       selectionOperator: createFitnessProportionateSelectionOperator(),
       crossoverOperator: createUniformCrossoverOperator(0),
       mutationOperator: createUniformMutationOperator(1),
@@ -110,23 +114,23 @@ describe(`geneticAlgorithm()`, () => {
     ]);
   });
 
-  test(`answer to everything`, () => {
+  test(`answer to everything`, async () => {
     const smallNumberGenotype = {
       base: createFloatAllele(1, 10),
       exponent: createIntegerAllele(2, 4),
     };
 
-    function isAnswerToEverything(
+    async function isAnswerToEverything(
       smallNumberPhenotype: Phenotype<typeof smallNumberGenotype>,
-    ): number {
+    ): Promise<number> {
       const number = Math.pow(
         smallNumberPhenotype.base,
         smallNumberPhenotype.exponent,
       );
 
-      return number === 42
-        ? Number.MAX_SAFE_INTEGER
-        : 1 / Math.abs(42 - number);
+      return Promise.resolve(
+        number === 42 ? Number.MAX_SAFE_INTEGER : 1 / Math.abs(42 - number),
+      );
     }
 
     let state: GeneticAlgorithmState<typeof smallNumberGenotype> = {
@@ -141,10 +145,10 @@ describe(`geneticAlgorithm()`, () => {
     };
 
     for (let i = 0; i < 100; i += 1) {
-      state = geneticAlgorithm(state);
+      state = await geneticAlgorithm(state);
     }
 
-    const answerToEverythingPhenotype = getFittestPhenotype(state);
+    const answerToEverythingPhenotype = await getFittestPhenotype(state);
 
     const answerToEverything = Math.pow(
       answerToEverythingPhenotype!.base,
