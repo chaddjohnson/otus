@@ -9,8 +9,13 @@
   "license": "MIT",
   "author": "Clemens Akens",
   "sideEffects": false,
-  "type": "module",
-  "exports": "./lib/index.js",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    "require": "./lib/index.js",
+    "import": "./lib/index.js"
+  },
   "files": [
     "lib"
   ],
