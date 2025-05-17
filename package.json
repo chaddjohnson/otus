@@ -1,5 +1,5 @@
 {
-  "name": "@chaddjohnson/otus",
+  "name": "otus",
   "version": "1.1.0",
   "description": "A modular JavaScript API for programming with genetic algorithms.",
   "repository": {
